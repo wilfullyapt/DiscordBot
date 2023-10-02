@@ -19,6 +19,6 @@ nano config.yaml
 
 ### Development Path
 
-- [ ] Add OpenAI API key to config and include an AI under `.comands` or `/commands`
-- [ ] Understand intent of user
-- [ ] Deliver upon user's requests
+- [x] AI accepting commands and conversations via LangChain and OpenAI
+- [ ] Prompt user to reply to message, recognize reply
+- [ ] Capturing pictures and saving them to a "workarea"

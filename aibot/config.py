@@ -21,7 +21,7 @@ class Config:
             FileNotFoundError: If specified YAML file does not exist.
         """
         if yaml_path is None:
-            yaml_path = Path(__file__).resolve().parent / 'config.yaml'
+            yaml_path = Path(__file__).resolve().parent / '..' / 'config.yaml'
             
         if not Path(yaml_path).exists():
             raise FileNotFoundError(f"Invalid YAML file: {yaml_path}")

@@ -1,5 +1,5 @@
 import discord
-from config import Config
+from aibot import Config , AI
 
 config = Config.from_yaml()
 
@@ -7,6 +7,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
+
+ai = AI(config.OPENAI_API_KEY)
 
 @client.event
 async def on_ready():
@@ -17,7 +19,11 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
+    if message.content.startswith('.'):
+        response = ai.dot_command(message)
+        await message.channel.send(response)
+    else:
+        response = ai.converse(message)
+        await message.channel.send(response)
 
 client.run(config.DISCORD_BOT_TOKEN)
