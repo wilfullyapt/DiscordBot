@@ -20,5 +20,7 @@ nano config.yaml
 ### Development Path
 
 - [x] AI accepting commands and conversations via LangChain and OpenAI
-- [ ] Prompt user to reply to message, recognize reply
-- [ ] Capturing pictures and saving them to a "workarea"
+- [x] Inventory should load automatically upon instantiation, creating a default `manifest.json` if missing
+- [ ] Inventory of the AI should save automatically through callbacks and load automatically on instantiation
+- [\] Goal: .aidoc with attachements being PDFs will respond with a document loader AI
+- [ ] Eventually: Finacial Manager to download picture of bank account and save to .csv file
