@@ -28,7 +28,9 @@ class BaseItem(ABC):
     @path.setter 
     def path(self, value):
         self._path = Path(value)
-                
+        if not self._path.is_dir() and self._path.parent.is_dir():
+            self._path.mkdir()
+
     @property
     def callbacks(self):
         return self._callbacks
@@ -38,6 +40,14 @@ class BaseItem(ABC):
         if value is not None:
             self._callbacks = value
 
+    @property
+    def methods(self):
+        methods = inspect.getmembers(type(self), predicate=inspect.isfunction)
+        return [name for name, _ in methods if not name.startswith("__")]
+
+    async def interact(self, message):
+        raise NotImplementedError("'{self.name}' has not implemented the 'interact' method!")
+
     def validate_members(self):
         members = [self.name, self.description, self.callbacks, self.path]
         for member in members:
@@ -45,16 +55,24 @@ class BaseItem(ABC):
                 return False
         return True
 
-    @property
-    def methods(self):
-        methods = inspect.getmembers(type(self), predicate=inspect.isfunction)
-        return [name for name, _ in methods if not name.startswith("__")]
-
 class AIDoc(BaseItem):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.name: str = "aidoc"
         self.description: str = "Document loader for chatting with documents"
+
+    async def interact(self, message):
+        if message.attachments:
+
+            for attachment in message.attachments:
+                await attachment.save(self.path/attachment.filename)
+            await message.reply("All attachments saved!")
+
+        else:
+
+            await message.reply("No attachments provided!")
+
+        return
 
     def doc_loader_method(self, doc_loader=None):
       pass

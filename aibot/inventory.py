@@ -26,6 +26,15 @@ class Inventory:
     def __setitem__(self, key, value):
         self.items[key] = value
 
+    def get(self, key: str, default_return=None):
+        if key not in self.items.keys():
+            return default_return
+        return self[key]
+
+    @property
+    def item_names(self):
+        return list(self.items.keys())
+
     @property
     def describe(self):
         for key, value in self.items.items():
@@ -38,11 +47,6 @@ class Inventory:
 
         self.items[item.name] = item
 
-    def get(self, key: str, default_return=None):
-        if key not in self.items.keys():
-            return default_return
-        return self[key]
-
     def save(self) -> None:
         with open(self.manifest, 'w') as f:
             json.dump({key: {'name': item.name,
@@ -53,7 +57,6 @@ class Inventory:
         try:
             with open(manifest_filepath) as file:
                 items = json.load(file)
-                self.i = items
 
             load_items = [ get_item(value) for _, value in items.items() ]
             
