@@ -1,24 +1,25 @@
 import json
 from pathlib import Path
 
-from .items import AIDoc, get_item
+from .items import BaseItem, get_item, get_item_identifier
+from .callbacks import BaseCallbackManager
 from .utils import write_default_manifest
 
 class Inventory:
-    def __init__(self, root_dir, callback_manager=None, verbose=True):
+    def __init__(self, root_dir, llm, callback_manager=None, verbose=True):
         self.root_dir = Path(root_dir)
-        self.manifest = self.root_dir / "manifest.json"
-        self.callbacks = callback_manager
+        self.manifest_filepath = self.root_dir / "manifest.json"
+        self._llm = llm
+        if callback_manager is None:
+            callback_manager = BaseCallbackManager()
+        self.callback_manager = callback_manager
         self.verbose = verbose
-
-        if not self.manifest.is_file():
-            write_default_manifest(self.manifest)
-
         self.items = {}
-        self.load_manifest(self.manifest)
 
-        if not hasattr(self, "items"):
-            raise Exception("ERROR")
+        if not self.manifest_filepath.is_file():
+            write_default_manifest(self.manifest_filepath)
+
+        self.load_manifest(self.manifest_filepath)
     
     def __getitem__(self, key):
         return self.items.get(key)
@@ -40,28 +41,34 @@ class Inventory:
         for key, value in self.items.items():
             print(f" {key}: {value}")
 
+    @property
+    def llm(self):
+        return self._llm
+
     def add(self, item) -> None:
-        #if not isinstance(item, Item): raise TypeError("Invalid item")     # uncomment to work on Exception handling
-        item.callbacks = self.callbacks
+        if not isinstance(item, BaseItem):
+            raise TypeError(f"Expected 'item' to be an instance of {BaseItem.__name__}")
+        item.callbacks = self.callback_manager
         item.path = self.root_dir / item.name
 
         self.items[item.name] = item
 
-    def save(self) -> None:
-        with open(self.manifest, 'w') as f:
-            json.dump({key: {'name': item.name,
-                             'quantity': item.quantity}
-                       for key, item in self.items.items()}, f)
+        self.save_manifest()
+
+    def save_manifest(self) -> None:
+        manifest = { name: get_item_identifier(type(item)) for name, item in self.items.items() }
+        with open(self.manifest_filepath, 'w') as f:
+            json.dump(manifest, f)
 
     def load_manifest(self, manifest_filepath):
         try:
             with open(manifest_filepath) as file:
                 items = json.load(file)
 
-            load_items = [ get_item(value) for _, value in items.items() ]
+            load_items = { name: get_item(value) for name, value in items.items() }
             
-            for item in load_items:
-                self.add(item())
+            for name, item in load_items.items():
+                self.add(item(name))
 
             if self.verbose:
                 print(f"Manifest loaded successfully from {manifest_filepath}")

@@ -14,16 +14,27 @@ template = """Acting as a helpful assistant, how best can you respond in the mos
 class AI:
 
     def __init__(self, openai_api_key, discord_client, inventory_dir=None, callback_manager=None):
-        self.llm = OpenAI(openai_api_key=openai_api_key, temperature=0)
-        self.llm_chain = LLMChain(llm=self.llm, prompt=PromptTemplate(input_variables=['prompt'], template=template))
+        self._llm = OpenAI(openai_api_key=openai_api_key, temperature=0)
+        self.llm_chain = LLMChain(llm=self._llm, prompt=PromptTemplate(input_variables=['prompt'], template=template))
         self.incoming = []
         self.discord_client = discord_client
 
-        if not Path(inventory_dir).is_dir():
-            #inventory_dir = Path(__file__).parent.parent / "inventory" # For usage to assign a default inventory
-            inventory_dir.mkdir(parents=True)
+        inventory_dir = Path(inventory_dir)
 
-        self.inventory = Inventory(inventory_dir, callback_manager=callback_manager)
+        if not inventory_dir.parent.is_dir():
+            raise ValueError("Parent directory does not exist or is not a directory")
+
+        if not inventory_dir.is_dir():
+            try:
+                inventory_dir.mkdir(parents=True)
+            except OSError as e:
+                raise ValueError(f"Failed to create the {inventory_dir} directory: {e}")
+
+        self.inventory = Inventory(inventory_dir, callback_manager=callback_manager, llm=self.llm)
+
+    @property
+    def llm(self):
+        return self._llm
 
     async def interact(self,message):
 
@@ -41,7 +52,8 @@ class AI:
                 return
 
             await self.inventory[command].interact(message)
-            return
 
         else:
             await message.channel.send(self.llm_chain.run(message.content))
+
+        return

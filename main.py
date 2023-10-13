@@ -1,6 +1,6 @@
 import discord
-from aibot import Config , AI, InvetoryItemCallbackManager
-from aibot.items import Personality
+from aibot import Config , AI, BaseCallbackManager
+from aibot.items import Items
 from pathlib import Path
 
 config = Config.from_yaml()
@@ -13,7 +13,7 @@ ai = AI(
     openai_api_key= config.OPENAI_API_KEY,
     discord_client=client,
     inventory_dir=Path(__file__).parent / 'inventory',
-    callback_manager=InvetoryItemCallbackManager()
+    callback_manager=BaseCallbackManager()
 )
 
 @client.event
@@ -24,19 +24,9 @@ async def on_ready():
 async def on_message(message):
     await ai.interact(message)
 
+# Current Troubleshooting Setup
+if (True, False)[0]:
+    f = list(ai.inventory['aidoc'].path.glob('*'))[0]
+    q = ai.inventory['aidoc'].create_embeddings_file
+
 client.run(config.DISCORD_BOT_TOKEN)
-
-
-"""
-AI should load itself from a manifest file upon instantiation
-    [ ] filepath args must be bulletproof
-    [x] write default manifest file if missing, then load
-
-AI shouls automatically save itself when the inventory or item is changed
-    [x] Callback should be loaded with the Invetory
-    [x] Callbacks should be added to items when the item is added to the inventory
-    [ ] Callback should be implemented into the events within the items
-
-GOAL: AI should be able to download an attachement from discord
-
-"""

@@ -2,3 +2,6 @@ pyyaml
 discord
 openai
 langchain
+pypdf
+chromadb
+tiktoken

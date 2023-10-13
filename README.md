@@ -19,8 +19,7 @@ nano config.yaml
 
 ### Development Path
 
-- [x] AI accepting commands and conversations via LangChain and OpenAI
-- [x] Inventory should load automatically upon instantiation, creating a default `manifest.json` if missing
-- [ ] Inventory of the AI should save automatically through callbacks and load automatically on instantiation
-- [ ] Goal: .aidoc with attachements being PDFs will respond with a document loader AI
+- [x] AIDoc: ".aidoc" + document attachment -> Document saved and embedding vector store created
+- [ ] AIDoc: ".aidoc {query}" -> question all the docuements
+- [ ] AIDoc: ".aidoc [specific, vecotr stores, to query] {query}" -> question the specific documents
 - [ ] Eventually: Finacial Manager to download picture of bank account and save to .csv file

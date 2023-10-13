@@ -1,10 +1,13 @@
 from pathlib import Path
 import yaml
+import os
 
 
 class Config:
     def __init__(self, config):
         self.config = config
+        os.environ['OPENAI_API_KEY'] = self.OPENAI_API_KEY
+
     
     @classmethod
     def from_yaml(cls, yaml_path=None) -> 'Config':

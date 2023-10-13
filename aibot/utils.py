@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 default_manifest = """{
@@ -23,3 +24,21 @@ def write_default_manifest(filepath):
     
     except IOError as e:
         print(f"Error writing default inventory manifest: {e}")
+
+def create_embeddings_from_pdf(filepath, save_directory):
+    from langchain.document_loaders import PyPDFLoader
+    from langchain.text_splitter import CharacterTextSplitter
+    from langchain.vectorstores import Chroma
+    from langchain.embeddings import OpenAIEmbeddings
+    from langchain.chains import RetrievalQA
+    from langchain.llms import OpenAI
+
+    loader = PyPDFLoader(str(filepath))
+
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    documents = text_splitter.split_documents(loader.load())
+
+    vectordb = Chroma.from_documents(documents, embedding=OpenAIEmbeddings(), persist_directory=str(save_directory))
+    vectordb.persist()
+
+    return vectordb
