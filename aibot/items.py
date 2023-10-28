@@ -5,13 +5,16 @@ from pathlib import Path
 
 from .callbacks import BaseCallbackManager
 from aibot.utils import create_embeddings_from_pdf
+from aibot.config import Config
 
 class BaseItem(ABC):
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, item_path):
+        if not item_path.is_dir():
+            raise FileNotFoundError(f"The directory '{item_path.name}' does not exist! 'Item cannot be created!!")
+        self.name = item_path.name
         self.description = "MUST INHERIT"
         self._callbacks = BaseCallbackManager()
-        self._path = None
+        self._path = item_path
 
     def __repr__(self):
         return f"ITEM({self.name}) : {self.description}"
@@ -27,12 +30,6 @@ class BaseItem(ABC):
     @property
     def path(self):
         return self._path
-     
-    @path.setter 
-    def path(self, value):
-        self._path = Path(value)
-        if not self._path.is_dir() and self._path.parent.is_dir():
-            self._path.mkdir()
 
     @property
     def callbacks(self):
@@ -62,7 +59,6 @@ class AIDoc(BaseItem):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.description: str = "Document loader for chatting with documents"
-        self.embeddings = []
         self.prompt_template = """Use the following pieces of context to answer the question at the end.
             If you don't know the answer, just say that you don't know, don't try to
             make up an answer.
@@ -72,17 +68,32 @@ class AIDoc(BaseItem):
             Question: {query}
             Helpful Answer:
         """
+        self.config = Config.from_yaml(self.path / "config.yaml")
+        self.embeddings = []
+
+    @property
+    def embeddings_directory(self):
+        embeddings_directory = self.path / self.config.EMBEDDINGS_DIRECTORY
+        if not embeddings_directory.is_dir():
+            embeddings_directory.mkdir(parents=False)
+        return embeddings_directory
+    @property
+    def source_directory(self):
+        source_directory = self.path / self.config.SOURCEFILES_DIRECTORY
+        if not source_directory.is_dir():
+            source_directory.mkdir(parents=False)
+        return source_directory
 
     def create_embeddings_file(self, source_document):
-
-        embedding_path = self.path / source_document.name.split(".")[0]
-        embeddings_filepath = create_embeddings_from_pdf(source_document, self.path)
-        self.embeddings.append(embeddings_filepath)
-
+        relitive_to_source = str(source_document).split(self.source_directory.name)[1]
+        self.d = relitive_to_source
+        embedding_path = self.embeddings_directory / source_document.name.split(".")[0]
+        embeddings = create_embeddings_from_pdf(source_document, self.embeddings_directory / source_document.name)
+        self.embeddings.append(embeddings)
 
     async def save_attachement(self, attachments):
         for attachment in message.attachments:
-            filepath = self.path/attachment.filename
+            filepath = self.source_directory() / attachment.filename
             await attachment.save(filepath)
             self.create_embeddings_file(filepath)
 
@@ -116,6 +127,9 @@ class Personality(BaseItem):
 
 
 class Items(Enum):
+    """ Items Enum is the single refernce point for items that can be in the inventory
+
+    """
     AI_DOCUMENT_LOADER  = AIDoc
     PERSONAITY          = Personality
 

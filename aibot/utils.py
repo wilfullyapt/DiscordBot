@@ -30,8 +30,6 @@ def create_embeddings_from_pdf(filepath, save_directory):
     from langchain.text_splitter import CharacterTextSplitter
     from langchain.vectorstores import Chroma
     from langchain.embeddings import OpenAIEmbeddings
-    from langchain.chains import RetrievalQA
-    from langchain.llms import OpenAI
 
     loader = PyPDFLoader(str(filepath))
 

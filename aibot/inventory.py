@@ -49,7 +49,6 @@ class Inventory:
         if not isinstance(item, BaseItem):
             raise TypeError(f"Expected 'item' to be an instance of {BaseItem.__name__}")
         item.callbacks = self.callback_manager
-        item.path = self.root_dir / item.name
 
         self.items[item.name] = item
 
@@ -68,7 +67,7 @@ class Inventory:
             load_items = { name: get_item(value) for name, value in items.items() }
             
             for name, item in load_items.items():
-                self.add(item(name))
+                self.add(item(manifest_filepath.parent / name))
 
             if self.verbose:
                 print(f"Manifest loaded successfully from {manifest_filepath}")

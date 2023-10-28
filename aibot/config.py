@@ -4,9 +4,12 @@ import os
 
 
 class Config:
-    def __init__(self, config):
+    def __init__(self, path, config):
         self.config = config
-        os.environ['OPENAI_API_KEY'] = self.OPENAI_API_KEY
+        try:
+            os.environ['OPENAI_API_KEY'] = self.OPENAI_API_KEY
+        except:
+            pass
 
     
     @classmethod
@@ -32,7 +35,7 @@ class Config:
         with open(yaml_path, 'r') as file:
             config = yaml.safe_load(file)
             
-        return cls(config)
+        return cls(yaml_path, config)
     
     def __getattr__(self, name):
         if name == "keys":
