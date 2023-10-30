@@ -13,11 +13,17 @@ template = """Acting as a helpful assistant, how best can you respond in the mos
 
 class AI:
 
-    def __init__(self, openai_api_key, discord_client, inventory_dir=None, callback_manager=None):
-        self._llm = OpenAI(openai_api_key=openai_api_key, temperature=0)
+    def __init__(self, config, inventory_dir=None, callback_manager=None):
+
+        self._llm = OpenAI(openai_api_key=config.OPENAI_API_KEY, temperature=0)
         self.llm_chain = LLMChain(llm=self._llm, prompt=PromptTemplate(input_variables=['prompt'], template=template))
+
         self.incoming = []
-        self.discord_client = discord_client
+
+        #self._llm = OpenAI(openai_api_key=openai_api_key, temperature=0)
+        #self.llm_chain = LLMChain(llm=self._llm, prompt=PromptTemplate(input_variables=['prompt'], template=template))
+        #self.incoming = []
+        #self.discord_client = discord_client
 
         inventory_dir = Path(inventory_dir)
 

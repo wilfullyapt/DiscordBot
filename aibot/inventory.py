@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from .items import BaseItem, get_item, get_item_identifier
-from .callbacks import BaseCallbackManager
+from .callbacks import CallbackManager
 from .utils import write_default_manifest
 
 class Inventory:
@@ -11,7 +11,7 @@ class Inventory:
         self.manifest_filepath = self.root_dir / "manifest.json"
         self._llm = llm
         if callback_manager is None:
-            callback_manager = BaseCallbackManager()
+            callback_manager = CallbackManager()
         self.callback_manager = callback_manager
         self.verbose = verbose
         self.items = {}
@@ -51,6 +51,7 @@ class Inventory:
         item.callbacks = self.callback_manager
 
         self.items[item.name] = item
+        self.callback_manager.invoke_callbacks("add_command", item.command)
 
         self.save_manifest()
 

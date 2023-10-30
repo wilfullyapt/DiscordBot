@@ -1,8 +1,9 @@
 from enum import Enum
 
-class BaseCallbackManager:
+class CallbackManager:
     def __init__(self):
         self.callbacks = {}
+
 
     def register_callback(self, event_name, callback):
         if event_name not in self.callbacks:

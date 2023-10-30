@@ -3,9 +3,12 @@ from abc import ABC
 from enum import Enum
 from pathlib import Path
 
-from .callbacks import BaseCallbackManager
+from discord.app_commands.commands import Command
+
+from aibot.callbacks import CallbackManager
 from aibot.utils import create_embeddings_from_pdf
 from aibot.config import Config
+from aibot.interaction import Interaction
 
 class BaseItem(ABC):
     def __init__(self, item_path):
@@ -13,7 +16,7 @@ class BaseItem(ABC):
             raise FileNotFoundError(f"The directory '{item_path.name}' does not exist! 'Item cannot be created!!")
         self.name = item_path.name
         self.description = "MUST INHERIT"
-        self._callbacks = BaseCallbackManager()
+        self._callbacks = CallbackManager()
         self._path = item_path
 
     def __repr__(self):
@@ -25,7 +28,6 @@ class BaseItem(ABC):
         print(f"    description: {self.description}")
         print(f"    callbacks: {self.callbacks}")
         print(f"    path: {self.path}")
-    
 
     @property
     def path(self):
@@ -41,9 +43,16 @@ class BaseItem(ABC):
             self._callbacks = value
 
     @property
+    def command(self):
+        raise NotImplementedError("'Item.command' has not implemented the 'interact' method!")
+
+    @property
     def methods(self):
         methods = inspect.getmembers(type(self), predicate=inspect.isfunction)
         return [name for name, _ in methods if not name.startswith("__")]
+
+    def attach_command(self, add_command):
+        add_command(self.interact)
 
     async def interact(self, message):
         raise NotImplementedError("'{self.name}' has not implemented the 'interact' method!")
@@ -70,6 +79,11 @@ class AIDoc(BaseItem):
         """
         self.config = Config.from_yaml(self.path / "config.yaml")
         self.embeddings = []
+        self.incomings = []
+
+    @property
+    def command(self):
+        return Command(name="aidoc", description="Upload / Query the AI docuement loader", callback=self.interact)
 
     @property
     def embeddings_directory(self):
@@ -102,14 +116,21 @@ class AIDoc(BaseItem):
     #    result = qa_chain({'query': 'Who is the CV about?'})
     #    print(result['result'])
 
-    async def interact(self, message):
-        if message.attachments:
-            # If there are attachements, save and create embeddings for it
-            await self.save_attachement(message.attachments)
+    async def interact(self, context):
 
-        else:
-            # TODO, implement question asking against embedding files
-            await message.reply("No attachments provided!")
+        interaction = Interaction.from_context(context)
+        self.incomings.append(interaction)
+
+        
+
+        #print(f"#######################\nTime: {datetime.datetime.now().strftime('%I:%M:%S %p')}\nUser: {data.user}\nServer: {data.server}\nCommand: chat_bot_ai\nPrompt: {one}\n#######################")
+
+        #if message.attachments:
+        #    # If there are attachements, save and create embeddings for it
+        #    await self.save_attachement(message.attachments)
+        #else:
+        #    # TODO, implement question asking against embedding files
+        #    await message.reply("No attachments provided!")
 
         return
 
