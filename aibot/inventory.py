@@ -51,9 +51,13 @@ class Inventory:
         item.callbacks = self.callback_manager
 
         self.items[item.name] = item
-        self.callback_manager.invoke_callbacks("add_command", item.command)
+        self.callback_manager.invoke_callbacks("inventory.add_command", item.command)
+        
+        if "on_message" in dir(item):
+            self.callback_manager.register_callback("client.on_message", item.on_message)
 
-        self.save_manifest()
+        # To uncomment later. Only save when not loading from manifest.
+        #self.save_manifest()
 
     def save_manifest(self) -> None:
         manifest = { name: get_item_identifier(type(item)) for name, item in self.items.items() }
@@ -66,7 +70,7 @@ class Inventory:
                 items = json.load(file)
 
             load_items = { name: get_item(value) for name, value in items.items() }
-            
+
             for name, item in load_items.items():
                 self.add(item(manifest_filepath.parent / name))
 

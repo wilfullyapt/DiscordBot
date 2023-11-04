@@ -2,13 +2,14 @@ import inspect
 from abc import ABC
 from enum import Enum
 from pathlib import Path
+import datetime
 
+from discord import app_commands
 from discord.app_commands.commands import Command
 
 from aibot.callbacks import CallbackManager
-from aibot.utils import create_embeddings_from_pdf
+from aibot.utils import create_embeddings_from_pdf, ContentTypes
 from aibot.config import Config
-from aibot.interaction import Interaction
 
 class BaseItem(ABC):
     def __init__(self, item_path):
@@ -20,7 +21,7 @@ class BaseItem(ABC):
         self._path = item_path
 
     def __repr__(self):
-        return f"ITEM({self.name}) : {self.description}"
+        return f"<Item name={self.name} description={self.description}>"
 
     @property
     def describe(self):
@@ -83,7 +84,10 @@ class AIDoc(BaseItem):
 
     @property
     def command(self):
-        return Command(name="aidoc", description="Upload / Query the AI docuement loader", callback=self.interact)
+        com = app_commands.commands.Command(name="aidoc", description="Upload / Query the AI docuement loader", callback=self.interact)
+        # See *args and **kwargs as part of self.interact, descriptions are for additional arguements to be provided for the Command
+        #app_commands.commands._populate_description(com._params, { "first_param": "first input arg" , "second_param": "second input arg" } )
+        return com
 
     @property
     def embeddings_directory(self):
@@ -98,44 +102,39 @@ class AIDoc(BaseItem):
             source_directory.mkdir(parents=False)
         return source_directory
 
-    def create_embeddings_file(self, source_document):
-        relitive_to_source = str(source_document).split(self.source_directory.name)[1]
-        self.d = relitive_to_source
-        embedding_path = self.embeddings_directory / source_document.name.split(".")[0]
-        embeddings = create_embeddings_from_pdf(source_document, self.embeddings_directory / source_document.name)
-        self.embeddings.append(embeddings)
+    async def save_attachement(self, attachment):
+        filepath = self.source_directory / attachment.filename
+        await attachment.save(filepath)
+        #self.create_embeddings(filepath)
 
-    async def save_attachement(self, attachments):
-        for attachment in message.attachments:
-            filepath = self.source_directory() / attachment.filename
-            await attachment.save(filepath)
-            self.create_embeddings_file(filepath)
+    async def on_message(self, message, *args, **kwargs):
+        if message.attachments:
+            for attachment in message.attachments:
+                if attachment.content_type == ContentTypes.PDF.value:
+                    await self.save_attachement(attachment)
+                    await message.reply(f"`{attachment.filename}` saved under AI Document Loader!")
 
     #def query_documents(self, query):
     #    qa_chain = RetrievalQA.from_chain_type(llm="test", retriever= vectordb.as_retriever(search_kwargs={'k': 7}), return_source_documents=True)
     #    result = qa_chain({'query': 'Who is the CV about?'})
     #    print(result['result'])
 
-    async def interact(self, context):
+    def load_embeddings(self, doc_loader=None):
+        pass
 
-        interaction = Interaction.from_context(context)
+    def create_embeddings(self, source_document):
+        relitive_to_source = str(source_document).split(self.source_directory.name)[1]
+        self.d = relitive_to_source
+        embedding_path = self.embeddings_directory / source_document.name.split(".")[0]
+        embeddings = create_embeddings_from_pdf(source_document, self.embeddings_directory / source_document.name)
+        self.embeddings.append(embeddings)
+
+    async def interact(self, interaction):
         self.incomings.append(interaction)
 
-        
-
-        #print(f"#######################\nTime: {datetime.datetime.now().strftime('%I:%M:%S %p')}\nUser: {data.user}\nServer: {data.server}\nCommand: chat_bot_ai\nPrompt: {one}\n#######################")
-
-        #if message.attachments:
-        #    # If there are attachements, save and create embeddings for it
-        #    await self.save_attachement(message.attachments)
-        #else:
-        #    # TODO, implement question asking against embedding files
-        #    await message.reply("No attachments provided!")
+        await interaction.response.send_message("this is a test")
 
         return
-
-    def doc_loader_method(self, doc_loader=None):
-      pass
 
 class Personality(BaseItem):
     def __init__(self, *args, **kwargs) -> None:

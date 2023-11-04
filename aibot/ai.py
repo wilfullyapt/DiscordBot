@@ -42,7 +42,7 @@ class AI:
     def llm(self):
         return self._llm
 
-    async def interact(self,message):
+    async def interact(self, message):
 
         if message.author == self.discord_client.user:
             return
