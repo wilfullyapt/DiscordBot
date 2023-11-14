@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
 
-from .items import BaseItem, get_item, get_item_identifier
-from .callbacks import CallbackManager
-from .utils import write_default_manifest
+from aibot.items import BaseItem, get_item, get_item_identifier
+from aibot.callbacks import CallbackManager
+from aibot.utils import write_default_manifest
 
 class Inventory:
     def __init__(self, root_dir, llm, callback_manager=None, verbose=True):
@@ -12,12 +12,16 @@ class Inventory:
         self._llm = llm
         if callback_manager is None:
             callback_manager = CallbackManager()
+            print("Callback redid")
         self.callback_manager = callback_manager
+        #print(f" -::  [Inventory.__init__]\t Inventory.callback_manager = {self.callback_manager.keys}")
         self.verbose = verbose
         self.items = {}
 
         if not self.manifest_filepath.is_file():
             write_default_manifest(self.manifest_filepath)
+            if self.verbose:
+                print(f" -::> Default Manifest File created!")
 
         self.load_manifest(self.manifest_filepath)
     
@@ -48,9 +52,14 @@ class Inventory:
     def add(self, item) -> None:
         if not isinstance(item, BaseItem):
             raise TypeError(f"Expected 'item' to be an instance of {BaseItem.__name__}")
+
         item.callbacks = self.callback_manager
 
         self.items[item.name] = item
+        if self.verbose:
+            print(f" -::>  AI.inventory.add({item.name}, {item})")
+
+
         self.callback_manager.invoke_callbacks("inventory.add_command", item.command)
         
         if "on_message" in dir(item):
@@ -75,7 +84,9 @@ class Inventory:
                 self.add(item(manifest_filepath.parent / name))
 
             if self.verbose:
-                print(f"Manifest loaded successfully from {manifest_filepath}")
-        
+                print(f" -::> Manifest loaded successfully from {manifest_filepath}")
+                for name, item in self.items.items():
+                    print(f" -::>  {name} :: {item}")
+
         except IOError as e:
             print(f"Error loading manifest: {e}")

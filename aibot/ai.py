@@ -4,7 +4,10 @@ from langchain.prompts import PromptTemplate
 
 from pathlib import Path
 
-from .inventory import Inventory
+from aibot.inventory import Inventory
+from aibot.brain import Brain
+
+import os
 
 
 template = """Acting as a helpful assistant, how best can you respond in the most fulfilling way to the following prompt?
@@ -14,16 +17,12 @@ template = """Acting as a helpful assistant, how best can you respond in the mos
 class AI:
 
     def __init__(self, config, inventory_dir=None, callback_manager=None):
+        os.environ['OPENAI_API_KEY'] = config.OPENAI_API_KEY
 
         self._llm = OpenAI(openai_api_key=config.OPENAI_API_KEY, temperature=0)
         self.llm_chain = LLMChain(llm=self._llm, prompt=PromptTemplate(input_variables=['prompt'], template=template))
 
         self.incoming = []
-
-        #self._llm = OpenAI(openai_api_key=openai_api_key, temperature=0)
-        #self.llm_chain = LLMChain(llm=self._llm, prompt=PromptTemplate(input_variables=['prompt'], template=template))
-        #self.incoming = []
-        #self.discord_client = discord_client
 
         inventory_dir = Path(inventory_dir)
 

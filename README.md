@@ -11,7 +11,7 @@ git clone https://github.com/wmawhinney1990/DiscordBot
 cd DiscordBot
 pip install -r requirements.txt
 cp config-example.yaml config.yaml
-nano config.yaml
+nano config.yaml    # Update your keys for access
 ```
 #### Run the Bot
 
@@ -19,7 +19,14 @@ nano config.yaml
 
 ### Development Path
 
-- [x] AIDoc: ".aidoc" + document attachment -> Document saved and embedding vector store created
-- [ ] AIDoc: ".aidoc {query}" -> question all the docuements
-- [ ] AIDoc: ".aidoc [specific, vecotr stores, to query] {query}" -> question the specific documents
-- [ ] Eventually: Finacial Manager to download picture of bank account and save to .csv file
+- [x] AIDoc: Any PDF uploaded is captured by AIDoc and saved
+- [ ] AIDoc: Create and Load embeddings
+- [ ] AIDoc: Query embeddings
+- [ ] AIDoc: `from_url=URL` -> Converts a webpage or downloadable pdf to a `source` and embeds it
+- [ ] ImGen: Image Generator. /imgem prompt="image prompt"
+- [ ] ImGen: Base slash command to alter defaults through manifest.json?
+
+### Long term feature additions
+- [ ] Finacial Manager to download picture of bank account and save to .csv file over time
+- [ ] Bible verse loader. KJV / NIV / Other versions. Query a book chapter:verse, 2Kings 13:1-4
+- [ ] Implement AI.Brain to act as a dataclass for `core_thought` and `list(thoughts)` recording messages as thoughts.

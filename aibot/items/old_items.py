@@ -1,10 +1,18 @@
+#######################################
+##############
+###
+### This file
+###     is slated for
+###         completely deletaion and deprication
+###
+###
 import inspect
 from abc import ABC
 from enum import Enum
 from pathlib import Path
 import datetime
 
-from discord import app_commands
+from discord import app_commands ,ui, ButtonStyle, Interaction
 from discord.app_commands.commands import Command
 
 from aibot.callbacks import CallbackManager
@@ -21,7 +29,7 @@ class BaseItem(ABC):
         self._path = item_path
 
     def __repr__(self):
-        return f"<Item name={self.name} description={self.description}>"
+        return f"<Item name='{self.name}' description='{self.description}'>"
 
     @property
     def describe(self):
@@ -85,8 +93,6 @@ class AIDoc(BaseItem):
     @property
     def command(self):
         com = app_commands.commands.Command(name="aidoc", description="Upload / Query the AI docuement loader", callback=self.interact)
-        # See *args and **kwargs as part of self.interact, descriptions are for additional arguements to be provided for the Command
-        #app_commands.commands._populate_description(com._params, { "first_param": "first input arg" , "second_param": "second input arg" } )
         return com
 
     @property
@@ -131,27 +137,49 @@ class AIDoc(BaseItem):
 
     async def interact(self, interaction):
         self.incomings.append(interaction)
+        await interaction.response.send_message(content="AI Document Loader Interaction", view=AIDocButtons(interaction.user,self))
+        #try:
+        #    await interaction.response.send_message("this is a second test")
+        #except:
+        #    await interaction.followup.send("Uh oh!")
+        #    await interaction.followup.send("Spegetti Ohs!")
 
-        await interaction.response.send_message("this is a test")
+class AIDocButtons(ui.View):
 
-        return
+    def __init__(self, author, aidoc):
+        super().__init__()
+        self.author = author
+        self.aidoc = aidoc
 
-class Personality(BaseItem):
+    @ui.button(label='Create Embeddings', style=ButtonStyle.blurple)
+    async def create_embeddings(self, interaction: Interaction, button: ui.Button):
+        pass
+
+    @ui.button(label='Load Vector Store', style=ButtonStyle.blurple)
+    async def load_store(self, interaction: Interaction, button: ui.Button):
+        pass
+
+class ImGen(BaseItem):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.description: str = "Personalityof the AI is stored here"
+        self.description: str = "Image Generator using AI"
 
-    def personality(self, filesystem=None):
-      pass
+    @property
+    def command(self):
+        com = app_commands.commands.Command(name="imgen", description="Create an image using AI", callback=self.interact)
+        app_commands.commands._populate_description(com._params, { "prompt": "Input prompt for image generation" } )
+        return com
 
-
+    async def interact(self, interaction, prompt):
+        self.incomings.append(interaction)
+        await interaction.response.send_message("ImgGen has not been reated yet")
 
 class Items(Enum):
     """ Items Enum is the single refernce point for items that can be in the inventory
 
     """
     AI_DOCUMENT_LOADER  = AIDoc
-    PERSONAITY          = Personality
+    IMAGE_GENERATOR     = ImGen
 
 def get_item(item_string_identifier):
     for item in Items:

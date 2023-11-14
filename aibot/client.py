@@ -12,7 +12,7 @@ class DiscordClient(discord.Client):
 
     def add_command(self, command):
         self.tree.add_command(command)
-        return
+        #await self.tree.sync(guild=self.guild)
 
     async def sync_tree(self):
         await self.tree.sync(guild=self.guild)
