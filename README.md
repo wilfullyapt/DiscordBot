@@ -19,12 +19,11 @@ nano config.yaml    # Update your keys for access
 
 ### Development Path
 
-- [x] AIDoc: Any PDF uploaded is captured by AIDoc and saved
-- [x] AIDoc: Create and Load embeddings
-- [x] AIDoc: Query embeddings
+- [ ] AIDoc: Add `try` and `except` logic to AIDoc for `create_embeddings`
 - [ ] AIDoc: `from_url=URL` -> Converts a webpage or downloadable pdf to a `source` and embeds it
+- [ ] Remi: Reminder based system: `/remi` shows a list of reminders
 - [ ] ImGen: Image Generator. /imgem prompt="image prompt"
-- [ ] ImGen: Base slash command to alter defaults through manifest.json?
+- [ ] ImGen: Image catalog. Append to master log: [YYYYMonthDD] { filename: prompt } save images in directories by log entry dates.
 
 ### Long term feature additions
 - [ ] Finacial Manager to download picture of bank account and save to .csv file over time
@@ -34,3 +33,4 @@ nano config.yaml    # Update your keys for access
 - [ ] Interface to a business / AI that entirely runs a business for you
 - [ ] Bible verse loader. KJV / NIV / Other versions. Query a book chapter:verse, 2Kings 13:1-4
 - [ ] Implement AI.Brain to act as a dataclass for `core_thought` and `list(thoughts)` recording messages as thoughts.
+- [ ] AI using tools on human request: `on_message` Is this from the user with the intention of the AI doing something for the user? How should the AI respond to fulfill the intention?

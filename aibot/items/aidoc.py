@@ -75,6 +75,7 @@ class VectorStoreEngine:
         vectordb = Chroma.from_documents(documents, embedding=self.embedding_function, persist_directory=str(self.embeddings_directory / Path(source_document).stem))
         self.vdb = vectordb
 
+
     def query(self, query, chain_type=("map_reduce", "stuff")[0]):
         self.vdb = Chroma(persist_directory=str(self.pointer), embedding_function=self.embedding_function)
         chain = load_qa_chain(OpenAI(temperature=0), chain_type=chain_type)
@@ -99,8 +100,9 @@ class AIDoc(BaseItem):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.description: str = "Document loader for chatting with documents"
-        self.config = Config.from_yaml(self.path / "config.yaml")
-        self.vse = VectorStoreEngine(self.config, relative_path=self.path)
+        vse_settings = Config.from_yaml(self.path / "config.yaml")
+        #vse_settings = Config.from_dict()
+        self.vse = VectorStoreEngine(vse_settings, relative_path=self.path)
 
     @property
     def command(self):
@@ -141,17 +143,17 @@ class AIDoc(BaseItem):
                     await self.save_attachement(attachment)
                     await message.reply(f"`{attachment.filename}` saved under AI Document Loader!")
 
-    async def interact(self, interaction, prompt: str = None):
+    async def interact(self, interaction, prompt: str = None, from_url: str = None):
         self.i = interaction
         if prompt is not None:
             if self.vse.is_ready:
-                await interaction.response.send_message(content=f"Querying [{self.vse.pointer.stem}] ...", ephemeral=True)
+                await interaction.response.send_message(content=f"Querying [{self.vse.pointer.stem}] ...  *should take less than a minute*", ephemeral=True)
                 result = self.vse.query(prompt)
                 await interaction.followup.send(content=f"Input query[{self.vse.pointer.stem}]: {prompt}\n\nResult: {result}")
             else:
                 await interaction.response.send_message(content="No Vector Store selected to query! Use the `/aidoc` command to see deatils or upload a PDF.")
         else:
-            await interaction.response.send_message(content="AI Document Loader Interaction", embed=self.discord_embed, view=self.discord_view)
+            await interaction.response.send_message(content="AI Document Loader Interaction", embed=self.discord_embed, view=self.discord_view, delete_after=60)
 
 class DocumentDropdown(ui.Select):
     def __init__(self,options, dropdown_callback):
